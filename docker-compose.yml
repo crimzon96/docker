@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    command: sh -c "python manage.py runserver 0.0.0.0:8080"
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - local-var.env
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=#
+      - POSTGRES_USER=#
+      - POSTGRES_PASSWORD=#
+
+  migration:
+    image: python:3.7-alpine
+    command: sh -c "python manage.py migrate --noinput"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+  test:
+    build: .
+    command: sh -c "python manage.py test"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - local-var.env
+    depends_on:
+        - db
+
+  deploy_test:
+    build: .
+    env_file:
+      - deploy-test-var.env
+
+  deploy_production:
+    build: .
+    env_file:
+      - deploy-production-var.env
